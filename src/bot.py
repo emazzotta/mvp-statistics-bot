@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def score(bot, update):
     chat_id = update.message.chat_id
-    scores = mvp_score(chat_id)
+    scores = load_mvp_score(chat_id)
     scores = OrderedDict(reversed(sorted(scores.items(), key=lambda x: x[1])))
     if len(scores) == 0:
         send_message(bot, chat_id, 'No MVP list recorded for this chat group!')
@@ -43,15 +43,17 @@ def vote(bot, update):
     if len(votee) < 2 or '@' not in votee[1]:
         send_message(bot, chat_id,
                      'Your vote is unclear, you have to include @usertovotefor')
+    elif voter == '':
+        send_message(bot, chat_id, 'Get a username first, before voting!')
     else:
         votee = votee[1].strip()[1:]
-        if voter == votee or votee not in registered_users(chat_id):
+        if voter == votee or votee not in load_registered_users(chat_id):
             send_message(bot, chat_id, 'You can not vote for *%s*' % votee)
         else:
-            scores = mvp_score(chat_id)
+            scores = load_mvp_score(chat_id)
             scores[votee] = scores[votee] + 1 if votee in scores else 1
             save_mvp_score(scores, chat_id)
-            send_message(bot, chat_id, '*%s* voted! MVP score for *%s*: *%s*' %
+            send_message(bot, chat_id, '*%s* voted! MVP score *%s*: *%s*' %
                          (voter, fullname_by(votee, chat_id), scores[votee]))
 
 
@@ -61,7 +63,7 @@ def register(bot, update):
                            update.message.from_user.last_name)).strip()
     chat_id = update.message.chat_id
     if username != '':
-        users = registered_users(chat_id)
+        users = load_registered_users(chat_id)
         users[username] = fullname
         save_registered_users(users, chat_id)
         send_message(bot, chat_id,
@@ -97,7 +99,7 @@ def main():
 
 
 def fullname_by(username, chat_id):
-    return registered_users(chat_id)[username]
+    return load_registered_users(chat_id)[username]
 
 
 def full_path_for(file, id):
@@ -110,34 +112,33 @@ def create_if_not_exists(filename):
             data_file.write("{}")
 
 
-def mvp_score(chat_id):
-    filename = full_path_for('scores', chat_id)
-    create_if_not_exists(filename)
-    with open(filename, 'r+') as score_file:
-        scores = json.load(score_file)
-    return scores
+def load_mvp_score(chat_id):
+    return load(full_path_for('scores', chat_id))
 
 
 def save_mvp_score(scores, chat_id):
-    filename = full_path_for('scores', chat_id)
-    create_if_not_exists(filename)
-    with open(filename, 'w+') as score_file:
-        json.dump(scores, score_file)
+    save(full_path_for('scores', chat_id), scores)
 
 
-def registered_users(chat_id):
-    filename = full_path_for('users', chat_id)
-    create_if_not_exists(filename)
-    with open(filename, 'r+') as user_file:
-        registered = json.load(user_file)
-    return registered
+def load_registered_users(chat_id):
+    return load(full_path_for('users', chat_id))
 
 
 def save_registered_users(users, chat_id):
-    filename = full_path_for('users', chat_id)
+    save(full_path_for('users', chat_id), users)
+
+
+def save(filename, content):
     create_if_not_exists(filename)
-    with open(filename, 'w+') as user_file:
-        json.dump(users, user_file)
+    with open(filename, 'w+') as write_file:
+        json.dump(content, write_file)
+
+
+def load(filename):
+    create_if_not_exists(filename)
+    with open(filename, 'r+') as load_file:
+        loaded_data = json.load(load_file)
+    return loaded_data
 
 
 def send_message(bot, chat_id, text):
