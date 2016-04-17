@@ -5,10 +5,21 @@ A simple bot that collects statistics on who's been voted MVP.
 ## Getting Started
 
 The file `secret.key` in `src` must contain the token of the bot.
-To start the bot, navigate to `setup` and run:
+
+### Docker Start
 
 ```
-docker-compose up -d
+# From project directory
+mkdir -p data
+docker-compose -f setup/docker-compose.yml up -d
+```
+
+### Regular Start
+
+```
+# From project directory
+setup/setup
+venv/bin/python src/bot.py
 ```
 
 ## Commands

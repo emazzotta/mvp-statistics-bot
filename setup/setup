@@ -5,6 +5,8 @@ SCRIPTPATH=`pwd -P`
 popd > /dev/null
 PROJECTPATH=$SCRIPTPATH/..
 
+mkdir -p $PROJECTPATH/data
+
 if [ ! -e $PROJECTPATH/venv/ ]; then
     python3 -m venv $PROJECTPATH/venv
 fi
