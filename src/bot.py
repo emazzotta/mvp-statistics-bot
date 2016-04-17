@@ -4,6 +4,7 @@
 import json
 import logging
 from collections import OrderedDict
+from datetime import datetime, timedelta
 from os.path import exists, join, realpath, dirname
 
 from telegram import ParseMode
@@ -13,6 +14,32 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def main():
+    key_path = join(dirname(realpath(__file__)), 'secret.key')
+    with open(key_path, 'r+') as secret_file:
+        token = secret_file.read()
+    updater = Updater(token, workers=10)
+    dispatcher = updater.dispatcher
+    dispatcher.addTelegramCommandHandler("score", score)
+    dispatcher.addTelegramCommandHandler("help", help)
+    dispatcher.addTelegramCommandHandler("vote", vote)
+    dispatcher.addTelegramCommandHandler("register", register)
+    dispatcher.addUnknownTelegramCommandHandler(unknown_command)
+    dispatcher.addErrorHandler(error)
+    update_queue = updater.start_polling(poll_interval=0.1, timeout=10)
+    while True:
+        text = input()
+        update_queue.put(text)
+
+
+def help(bot, update):
+    send_message(bot, update.message.chat_id, '' +
+                 '/help - Show this text' +
+                 '\n/score - Display current MVP stats' +
+                 '\n/vote *@username* - Vote username for MVP' +
+                 '\n/register - Register to be eligible for MVP status')
 
 
 def score(bot, update):
@@ -28,33 +55,30 @@ def score(bot, update):
         send_message(bot, chat_id, score_info)
 
 
-def help(bot, update):
-    send_message(bot, update.message.chat_id, '/help - Show this text' +
-                 '\n/score - Display current MVP stats' +
-                 '\n/vote *@username* - Vote username for MVP' +
-                 '\n/register - Register to be eligible for MVP status')
-
-
 def vote(bot, update):
     chat_id = update.message.chat_id
     voter = update.message.from_user.username
     votee = update.message.text.split(' ')
+    votes = load_vote_info(chat_id)
 
     if len(votee) < 2 or '@' not in votee[1]:
-        send_message(bot, chat_id,
-                     'Your vote is unclear, you have to include @usertovotefor')
+        send_message(bot, chat_id, 'You have to include @usertovotefor!')
     elif voter == '':
         send_message(bot, chat_id, 'Get a username first, before voting!')
     else:
         votee = votee[1].strip()[1:]
         if voter == votee or votee not in load_registered_users(chat_id):
             send_message(bot, chat_id, 'You can not vote for *%s*' % votee)
+        elif voter in votes and ((datetime.now() - datetime.fromtimestamp(votes[voter])) < timedelta(days=1)):
+            send_message(bot, chat_id, 'You already voted recently (24 hours)')
         else:
             scores = load_mvp_score(chat_id)
             scores[votee] = scores[votee] + 1 if votee in scores else 1
-            save_mvp_score(scores, chat_id)
             send_message(bot, chat_id, '*%s* voted! MVP score *%s*: *%s*' %
                          (voter, fullname_by(votee, chat_id), scores[votee]))
+            votes[voter] = (datetime.utcnow() - datetime(1970, 1, 1)).total_seconds()
+            save_mvp_score(scores, chat_id)
+            save_vote_info(votes, chat_id)
 
 
 def register(bot, update):
@@ -80,24 +104,6 @@ def error(update, error):
     logger.warn('Update %s caused error %s' % (update, error))
 
 
-def main():
-    key_path = join(dirname(realpath(__file__)), 'secret.key')
-    with open(key_path, 'r+') as secret_file:
-        token = secret_file.read()
-    updater = Updater(token, workers=10)
-    dispatcher = updater.dispatcher
-    dispatcher.addTelegramCommandHandler("score", score)
-    dispatcher.addTelegramCommandHandler("help", help)
-    dispatcher.addTelegramCommandHandler("vote", vote)
-    dispatcher.addTelegramCommandHandler("register", register)
-    dispatcher.addUnknownTelegramCommandHandler(unknown_command)
-    dispatcher.addErrorHandler(error)
-    update_queue = updater.start_polling(poll_interval=0.1, timeout=10)
-    while True:
-        text = input()
-        update_queue.put(text)
-
-
 def fullname_by(username, chat_id):
     return load_registered_users(chat_id)[username]
 
@@ -116,16 +122,24 @@ def load_mvp_score(chat_id):
     return load(full_path_for('scores', chat_id))
 
 
-def save_mvp_score(scores, chat_id):
-    save(full_path_for('scores', chat_id), scores)
-
-
 def load_registered_users(chat_id):
     return load(full_path_for('users', chat_id))
 
 
+def load_vote_info(chat_id):
+    return load(full_path_for('votes', chat_id))
+
+
+def save_mvp_score(scores, chat_id):
+    save(full_path_for('scores', chat_id), scores)
+
+
 def save_registered_users(users, chat_id):
     save(full_path_for('users', chat_id), users)
+
+
+def save_vote_info(votes, chat_id):
+    save(full_path_for('votes', chat_id), votes)
 
 
 def save(filename, content):
