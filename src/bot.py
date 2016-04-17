@@ -87,11 +87,8 @@ def vote(bot, update):
 def real_mvp(chat_id):
     all = load_mvp_score(chat_id)
     if len(all) > 0:
-        mvp = ''
-        for k, v in all.items():
-            if mvp == '' or mvp[0] < v:
-                mvp = {k: v}
-        return '%s: %s' % (fullname_by(k, chat_id), v)
+        mvp = max(all, key=all.get)
+        return '%s: %s' % (fullname_by(mvp, chat_id), all[mvp])
     else:
         return 'NO ONE'
 
