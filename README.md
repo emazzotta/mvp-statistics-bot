@@ -11,14 +11,14 @@ The file `secret.key` in `src` must contain the token of the bot.
 ```
 # From project directory
 mkdir -p data
-docker-compose -f setup/docker-compose.yml up -d
+docker-compose up -d
 ```
 
 ### Regular Start
 
 ```
 # From project directory
-setup/setup
+./setup.sh
 venv/bin/python src/bot.py
 ```
 

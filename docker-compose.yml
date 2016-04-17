@@ -1,0 +1,6 @@
+mvp-statistics-bot:
+  build: . 
+  volumes:
+    - ./data:/usr/src/app/data/
+  mem_limit: 12428800
+  command: python src/bot.py
