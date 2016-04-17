@@ -1,1 +1,2 @@
-python-telegram-bot
+python-telegram-bot==3.4
+requests==2.9.1

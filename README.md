@@ -29,6 +29,7 @@ venv/bin/python src/bot.py
 |/help|Show this text|
 |/score|Display current MVP stats|
 |/vote|Vote for a user (add @username after /vote)|
+|/meme|Generate meme for current MVP|
 |/register|Register to be eligible for MVP status|
 
 ## Author

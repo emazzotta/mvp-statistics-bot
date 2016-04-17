@@ -7,6 +7,7 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 from os.path import exists, join, realpath, dirname
 
+import requests
 from telegram import ParseMode
 from telegram.ext import Updater
 
@@ -25,6 +26,7 @@ def main():
     dispatcher.addTelegramCommandHandler("score", score)
     dispatcher.addTelegramCommandHandler("help", help)
     dispatcher.addTelegramCommandHandler("vote", vote)
+    dispatcher.addTelegramCommandHandler("meme", meme)
     dispatcher.addTelegramCommandHandler("register", register)
     dispatcher.addUnknownTelegramCommandHandler(unknown_command)
     dispatcher.addErrorHandler(error)
@@ -39,6 +41,7 @@ def help(bot, update):
                  '/help - Show this text' +
                  '\n/score - Display current MVP stats' +
                  '\n/vote *@username* - Vote username for MVP' +
+                 '\n/meme - Generate meme for current MVP' +
                  '\n/register - Register to be eligible for MVP status')
 
 
@@ -79,6 +82,29 @@ def vote(bot, update):
             votes[voter] = (datetime.utcnow() - datetime(1970, 1, 1)).total_seconds()
             save_mvp_score(scores, chat_id)
             save_vote_info(votes, chat_id)
+
+
+def real_mvp(chat_id):
+    all = load_mvp_score(chat_id)
+    if len(all) > 0:
+        mvp = ''
+        for k, v in all.items():
+            if mvp == '' or mvp[0] < v:
+                mvp = {k: v}
+        return '%s: %s' % (fullname_by(k, chat_id), v)
+    else:
+        return 'NO ONE'
+
+
+def meme(bot, update):
+    chat_id = update.message.chat_id
+    image_link = requests.get("https://api.imgflip.com/"
+                             "caption_image?template_id=15878567"
+                             "&username=imgflip_hubot&password=imgflip_hubot"
+                             "&text0=%s&text1=%s" % (
+        real_mvp(chat_id).replace(' ', '%20'),
+        'You%20Da%20Real%20MVP')).json()['data']['url']
+    send_message(bot, chat_id, 'Congratulations! %s' % image_link)
 
 
 def register(bot, update):
