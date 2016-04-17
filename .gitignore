@@ -1,0 +1,5 @@
+secret.key
+.idea
+venv
+data
+*.iml
