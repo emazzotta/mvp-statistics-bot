@@ -79,7 +79,8 @@ def vote(bot, update):
             scores[votee] = scores[votee] + 1 if votee in scores else 1
             send_message(bot, chat_id, '*%s* voted! MVP score *%s*: *%s*' %
                          (voter, fullname_by(votee, chat_id), scores[votee]))
-            votes[voter] = (datetime.utcnow() - datetime(1970, 1, 1)).total_seconds()
+            votes[voter] = (datetime.utcnow() -
+                            datetime(1970, 1, 1)).total_seconds()
             save_mvp_score(scores, chat_id)
             save_vote_info(votes, chat_id)
 
@@ -96,11 +97,11 @@ def real_mvp(chat_id):
 def meme(bot, update):
     chat_id = update.message.chat_id
     image_link = requests.get("https://api.imgflip.com/"
-                             "caption_image?template_id=15878567"
-                             "&username=imgflip_hubot&password=imgflip_hubot"
-                             "&text0=%s&text1=%s" % (
-        real_mvp(chat_id).replace(' ', '%20'),
-        'You%20Da%20Real%20MVP')).json()['data']['url']
+                              "caption_image?template_id=15878567"
+                              "&username=imgflip_hubot&password=imgflip_hubot"
+                              "&text0=%s&text1=%s" % (
+                                  real_mvp(chat_id).replace(' ', '%20'),
+                                  'You%20Da%20Real%20MVP')).json()['data']['url']
     send_message(bot, chat_id, 'Congratulations! %s' % image_link)
 
 
