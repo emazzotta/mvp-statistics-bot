@@ -17,7 +17,7 @@ A simple bot that collects statistics on who's been voted MVP.
 ### Start
 
 ```
-cat "BOT_SECRET_TOKEN" >> src/secret.key
+echo "BOT_SECRET_TOKEN" > src/secret.key
 mkdir -p data
 docker-compose up -d
 ```
