@@ -119,7 +119,7 @@ def real_mvp(chat_id):
 
 
 def is_invalid_command(message):
-    return message.document.mime_type == 'text/plain' and \
+    return not message.text or \
            all(message.text.startswith('/') and not message.text.startswith(f'/{valid}') for valid in VALID_COMMANDS)
 
 
