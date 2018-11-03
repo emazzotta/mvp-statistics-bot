@@ -170,4 +170,5 @@ def load(filename):
 
 
 if __name__ == '__main__':
+    logger.info('Starting bot...')
     bot.polling()

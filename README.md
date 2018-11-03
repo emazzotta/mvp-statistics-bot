@@ -2,17 +2,6 @@
 
 A simple bot that collects statistics on who's been voted MVP.
 
-## Getting Started
-
-The file `secret.key` in `src` must contain the token of the bot.
-
-### Start
-
-```
-mkdir -p data
-docker-compose up -d
-```
-
 ## Commands
 
 |Command|Action|
@@ -22,6 +11,16 @@ docker-compose up -d
 |/vote|Vote for a user (add @username after /vote)|
 |/meme|Generate meme for current MVP|
 |/register|Register to be eligible for MVP status|
+
+## Getting Started
+
+### Start
+
+```
+cat "BOT_SECRET_TOKEN" >> src/secret.key
+mkdir -p data
+docker-compose up -d
+```
 
 ## Author
 
