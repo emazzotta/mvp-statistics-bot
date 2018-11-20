@@ -1,6 +1,6 @@
 FROM python:3.7-alpine3.8
 
-MAINTAINER Emanuele Mazzotta hello@mazzotta.me
+LABEL maintainer="hello@mazzotta.me"
 
 ENV PYTHONPATH /app:$PYTHONPATH
 
