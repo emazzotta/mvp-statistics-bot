@@ -1,0 +1,9 @@
+[project]
+name = "mvp-statistics-bot"
+version = "0.1.0"
+description = "A simple bot that collects statistics on who's been voted MVP"
+requires-python = ">=3.15"
+dependencies = [
+    "pyTelegramBotAPI==4.37.1",
+    "requests==2.34.2",
+]
